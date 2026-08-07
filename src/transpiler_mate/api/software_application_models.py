@@ -18,7 +18,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Literal
+from datetime import date
+from typing import Annotated, Literal
 
 from pydantic import (
     AliasChoices,
@@ -30,9 +31,6 @@ from pydantic import (
     Field,
     RootModel,
 )
-
-if TYPE_CHECKING:
-    from datetime import date
 
 
 class Organization(BaseModel):

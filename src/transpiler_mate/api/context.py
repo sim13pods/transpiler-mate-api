@@ -16,16 +16,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from pathlib import Path
 
+from cwl_utils.parser import Process
 from pydantic import AnyUrl, BaseModel, ConfigDict
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from cwl_utils.parser import Process
-
-    from transpiler_mate.api.software_application_models import SoftwareApplication
+from transpiler_mate.api.software_application_models import SoftwareApplication
 
 
 class TranspilerContext(BaseModel):

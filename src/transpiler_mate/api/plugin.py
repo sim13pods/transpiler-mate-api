@@ -16,15 +16,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, Protocol, TypeVar, runtime_checkable
+from collections.abc import Callable
+from pathlib import Path
+from typing import Generic, Protocol, TypeVar, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from pathlib import Path
-
-    from transpiler_mate.api.context import TranspilerContext
+from transpiler_mate.api.context import TranspilerContext
 
 OptionsT = TypeVar("OptionsT", bound=BaseModel)
 

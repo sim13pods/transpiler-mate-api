@@ -112,6 +112,9 @@ ignore = [
   "E117", # Over-indented (handled by formatter)
 ]
 
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["pydantic.BaseModel"]
+
 [tool.ruff.lint.mccabe]
 # Flag errors (C901) whenever complexity exceeds 10 (default is 10)
 max-complexity = 10
