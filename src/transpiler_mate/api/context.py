@@ -44,6 +44,3 @@ class TranspilerContext(BaseModel):
         if isinstance(self.document, tuple):
             return self.document
         return (self.document,)
-
-
-# TranspilerContext.model_rebuild()
