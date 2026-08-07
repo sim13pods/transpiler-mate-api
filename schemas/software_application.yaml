@@ -1,0 +1,381 @@
+# Copyright 2025 Terradue
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://schema.org/SoftwareApplication
+$ref: '#/$defs/SoftwareApplication'
+
+$defs:
+
+  Identifier:
+    description: "The identifier property represents any kind of identifier for\
+      \ any kind of [[Thing]], such as ISBNs, GTIN codes, UUIDs etc. Schema.org\
+      \ provides dedicated properties for representing many of these, either as\
+      \ textual strings or as URL (URI) links. See [background notes](/docs/datamodel.html#identifierBg)\
+      \ for more details.\n        "
+    oneOf:
+    - type: string
+      format: uri
+    - type: string
+    # $ref: '#/$defs/PropertyValue' unsupported in this version
+
+  Email:
+    description: Email address.
+    oneOf:
+    - type: string
+      format: email
+    - type: array
+      items:
+        type: string
+        format: email
+
+  URI:
+    oneOf:
+    - type: string
+      format: uri
+    - type: array
+      items:
+        type: string
+        format: uri
+
+  Organization:
+    description: An organization such as a school, NGO, corporation, club, etc.
+    type: object
+    required:
+    - name
+    properties:
+      '@type':
+        type: string
+        const: https://schema.org/Organization
+      name:
+        description: The name of the item.
+        type: string
+      email:
+        description: Email address.
+        $ref: '#/$defs/Email'
+      identifier:
+        $ref: '#/$defs/Identifier'
+
+  Person:
+    description: A person (alive, dead, undead, or fictional).
+    type: object
+    required:
+    - givenName
+    - familyName
+    - email
+    - affiliation
+    properties:
+      '@type':
+        type: string
+        const: https://schema.org/Person
+      givenName:
+        description: Given name. In the U.S., the first name of a Person.
+        type: string
+      familyName:
+        description: Family name. In the U.S., the last name of a Person.
+        type: string
+      email:
+        description: Email address.
+        $ref: '#/$defs/Email'
+      identifier:
+        $ref: '#/$defs/Identifier'
+      affiliation:
+        description: An organization that this person is affiliated with. For example,
+          a school/university, a club, or a team.
+        oneOf:
+        - $ref: '#/$defs/Organization'
+        - type: array
+          items:
+            $ref: '#/$defs/Organization'
+
+  Role:
+    description: Represents additional information about a relationship or property.
+    type: object
+    required:
+    - roleName
+    properties:
+      '@type':
+        type: string
+        const: https://schema.org/Role
+      roleName:
+        description: A role played, performed or filled by a person or organization.
+        type: string
+      startDate:
+        description: The start date and time of the item
+        type: string
+        format: date
+      endDate:
+        description: The end date and time of the item
+        type: string
+        format: date
+      additionalType:
+        description: An additional type for the item, typically used for adding more specific types from external vocabularies in microdata syntax.
+        type: string
+        format: uri
+
+  AuthorRole:
+    allOf:
+    - $ref: '#/$defs/Role'
+    - type: object
+      required:
+      - author
+      properties:
+        author:
+          $ref: '#/$defs/Person'
+
+  ContributorRole:
+    allOf:
+    - $ref: '#/$defs/Role'
+    - type: object
+      required:
+      - contributor
+      properties:
+        contributor:
+          $ref: '#/$defs/Person'
+
+  DefinedTerm:
+    description: A word, name, acronym, phrase, etc. with a formal definition. Often
+      used in the context of category or subject classification, glossaries or dictionaries,
+      product or creative work types, etc. Use the name property for the term being
+      defined, use termCode if the term has an alpha-numeric code allocated, use
+      description to provide the definition of the term.
+    type: object
+    properties:
+      '@type':
+        type: string
+        const: https://schema.org/DefinedTerm
+      name:
+        description: The name of the item.
+        type: string
+      description:
+        description: A description of the item.
+        type: string
+      termCode:
+        description: A code that identifies this [[DefinedTerm]] within a [[DefinedTermSet]].
+        type: string
+      inDefinedTermSet:
+        description: A [[DefinedTermSet]] that contains this term.
+        type: string
+        format: uri # - $ref: '#/$defs/DefinedTermSet' unsupported
+
+  CreativeWork:
+    description: The most generic kind of creative work, including books, movies,
+      photographs, software programs, etc.
+    type: object
+    properties:
+      '@type':
+        type: string
+        const: https://schema.org/CreativeWork
+      name:
+        description: The name of the item.
+        type: string
+      url:
+        description: URL of the item.
+        type: string
+        format: uri
+      identifier:
+        $ref: '#/$defs/Identifier'
+
+  ImageObject:
+    description: An image file.
+    type: object
+    properties:
+      '@type':
+        type: string
+        const: https://schema.org/ImageObject
+      contentUrl:
+        description: Actual bytes of the media object, for example the image file or video file.
+        type: string
+        format: uri
+      caption:
+        description: The caption for this object.
+        type: string
+      encodingFormat:
+        description: |
+          Media type typically expressed using a MIME format (see [IANA site](http://www.iana.org/assignments/media-types/media-types.xhtml) and [MDN reference](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)), e.g. application/zip for a SoftwareApplication binary, audio/mpeg for .mp3 etc.
+        type: string
+      width:
+        description: The width of the item.
+        type: integer
+        format: int64
+      height:
+        description: The width of the item.
+        type: integer
+        format: int64
+
+  SoftwareApplication:
+    description: A software application.
+    type: object
+    required:
+    # The software itself
+    - name
+    - description
+    - dateCreated
+    - license
+    # Current version of the software
+    - softwareVersion
+    - softwareHelp
+    # Publisher
+    - publisher
+    # Authors
+    - author
+    properties:
+      '@type':
+        type: string
+        const: https://schema.org/SoftwareApplication
+      # The software itself
+      name:
+        description: The name of the item.
+        type: string
+      description:
+        description: A description of the item.
+        type: string
+      dateCreated:
+        description: The date on which the CreativeWork was created or the item
+          was added to a DataFeed.
+        oneOf:
+        - type: string
+          format: date
+        - type: string
+          format: date-time
+      license:
+        description: A license document that applies to this content, typically
+          indicated by URL.
+        oneOf:
+        - $ref: '#/$defs/CreativeWork'
+        - type: string
+          format: uri
+        - type: array
+          items:
+            oneOf:
+            - $ref: '#/$defs/CreativeWork'
+            - type: string
+              format: uri
+      # Discoverability and citation
+      identifier:
+        $ref: '#/$defs/Identifier'
+      sameAs:
+        description: URL of a reference Web page that unambiguously indicates the
+          item's identity. E.g. the URL of the item's Wikipedia page, Wikidata entry,
+          or official website.
+        $ref: '#/$defs/URI'
+      keywords:
+        description: Keywords or tags used to describe some item. Multiple textual
+          entries in a keywords list are typically delimited by commas, or by repeating
+          the property.
+        oneOf:
+        - type: string
+        - type: string
+          format: uri
+        - $ref: '#/$defs/DefinedTerm'
+        - type: array
+          items:
+            oneOf:
+            - type: string
+            - type: string
+              format: uri
+            - $ref: '#/$defs/DefinedTerm'
+      # Run-time environment
+      operatingSystem:
+        description: Operating systems supported (Windows 7, OS X 10.6, Android
+          1.6).
+        oneOf:
+        - type: string
+        - type: array
+          items:
+            type: string
+      softwareRequirements:
+        description: 'Component dependency requirements for application. This includes
+          runtime environments and shared libraries that are not included in the
+          application distribution package, but required to run the application
+          (examples: DirectX, Java or .NET runtime).'
+        oneOf:
+        - type: string
+        - type: string
+          format: uri
+        - type: array
+          items:
+            oneOf:
+            - type: string
+            - type: string
+              format: uri
+      # Current version of the software
+      softwareVersion:
+        description: Version of the software instance.
+        type: string
+      softwareHelp:
+        description: Software application help.
+        oneOf:
+        - $ref: '#/$defs/CreativeWork'
+        - type: array
+          items:
+            $ref: '#/$defs/CreativeWork'
+      # Publisher
+      publisher:
+        description: The publisher of the article in question.
+        $ref: '#/$defs/Organization'
+      # Authors
+      author:
+        description: The author of this content or rating. Please note that author
+          is special in that HTML 5 provides a special mechanism for indicating
+          authorship via the rel tag. That is equivalent to this and may be used
+          interchangeably.
+        oneOf:
+        - $ref: '#/$defs/AuthorRole'
+        - $ref: '#/$defs/Person'
+        - type: array
+          items:
+            oneOf:
+            - $ref: '#/$defs/AuthorRole'
+            - $ref: '#/$defs/Person'
+      contributor:
+        description: A secondary contributor to the CreativeWork or Event.
+        oneOf:
+        - $ref: '#/$defs/ContributorRole'
+        - $ref: '#/$defs/Person'
+        - type: array
+          items:
+            oneOf:
+            - $ref: '#/$defs/ContributorRole'
+            - $ref: '#/$defs/Person'
+      thumbnail:
+        description: Thumbnail image for an image or video.
+        $ref: '#/$defs/ImageObject'
+
+  SoftwareSourceCode:
+    description: Computer programming source code.
+    type: object
+    required:
+    - codeRepository
+    - targetProduct
+    properties:
+      '@type':
+        type: string
+        const: https://schema.org/SoftwareSourceCode
+      codeRepository:
+        description: Link to the repository where the un-compiled, human readable code and related code is located (SVN, GitHub, CodePlex).
+        type: string
+        format: uri
+      targetProduct:
+        description: Target Operating System / Product to which the code applies. If applies to several versions, just the product name can be used.
+        $ref: '#/$defs/SoftwareApplication'
+      # CodeMeta properties
+      continuousIntegration:
+        type: string
+        format: uri
+      issueTracker:
+        type: string
+        format: uri
+      relatedLink:
+        $ref: '#/$defs/URI'

@@ -1,0 +1,123 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "transpiler-mate-api"
+dynamic = ["version"]
+description = "Stable, execution-environment-neutral contracts for transpiler-mate plugins"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [
+  { name = "Simone Tripodi", email = "simone.tripodi@terradue.com" },
+  { name = "Fabrice Brito", email = "fabrice.brito@terradue.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "cwl-utils>=0.42,<1",
+  "email-validator>=2.3.0",
+  "pydantic>=2.13.4,<3",
+]
+
+[project.urls]
+Documentation = "https://terradue.github.io/state-mate/"
+Issues = "https://github.com/Terradue/state-mate/issues"
+Source = "https://github.com/Terradue/state-mate"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/transpiler_mate"]
+
+[tool.hatch.version]
+path = "src/transpiler_mate/api/__about__.py"
+
+[tool.hatch.build.targets.sdist]
+include = ["src/transpiler_mate", "tests", "examples", "docs", "README.md", "mkdocs.yml", "pyproject.toml"]
+
+[tool.coverage.paths]
+transpiler_mate = ["src/transpiler_mate", "*/state-mate/src/transpiler_mate"]
+tests = ["tests", "*/state-mate/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.hatch.envs.test]
+skip-install = false
+dependencies = [
+  "pytest>=8.4,<10",
+  "pytest-cov>=6.2,<8",
+]
+
+[tool.hatch.envs.test.scripts]
+test = "pytest {args:tests}"
+testv = "pytest --verbose {args:tests}"
+test-cov = "pytest --cov=transpiler_mate --cov-report=term-missing {args:tests}"
+test-show-setup = "pytest --setup-show"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+  "--strict-config",
+  "--strict-markers",
+]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.11", "3.12", "3.13", "3.14"]
+
+[tool.hatch.envs.dev]
+skip-install = false
+dependencies = [
+  "pytest>=8.4,<10",
+  "mypy>=2.3.0",
+  "ruff>=0.16.0",
+  "bandit>=1.9.4",
+]
+
+[tool.ruff.lint]
+# Start with the essential rules
+select = [
+  "F",    # Pyflakes (Critical for bugs)
+  "E",    # pycodestyle Errors
+  "W",    # pycodestyle Warnings
+  "I",    # isort (Import sorting)
+  "UP",   # pyupgrade (Modern syntax)
+  "B",    # flake8-bugbear (Common bugs)
+  "C4",   # flake8-comprehensions
+  "SIM",  # flake8-simplify
+  "FA",   # flake8-future-annotations
+  "TC",   # flake8-type-checking
+  "PTH",  # flake8-use-pathlib
+  "RET",  # flake8-return
+  "C90",  # McCabe Complexity (Enables C901)
+]
+
+# Ignore rules that conflict with the formatter (Ruff Format/Black)
+ignore = [
+  "E501", # Line too long (handled by formatter)
+  "W191", # Tab indentation (handled by formatter)
+  "E111", # Indentation issues (handled by formatter)
+  "E114", # Indentation issues (handled by formatter)
+  "E117", # Over-indented (handled by formatter)
+]
+
+[tool.ruff.lint.mccabe]
+# Flag errors (C901) whenever complexity exceeds 10 (default is 10)
+max-complexity = 10
+
+[tool.hatch.envs.dev.scripts]
+typecheck = "mypy --install-types --non-interactive {args:src tests}"
+lint = "ruff format {args:src tests}"
+check = "ruff check --fix {args:src tests}"
+security = "bandit -r {args:src}"

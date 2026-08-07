@@ -1,0 +1,9 @@
+.task
+.venv
+__pycache__
+uv.lock
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.vscode
+site

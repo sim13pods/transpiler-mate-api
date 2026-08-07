@@ -1,0 +1,45 @@
+site_name: State Mate
+site_description: Generate python-statemachine classes from constrained Sismic YAML statecharts.
+site_author: Fabrice Brito, Simone Tripodi
+site_url: https://terradue.github.io/state-mate/
+repo_url: https://github.com/Terradue/state-mate
+repo_name: Terradue/state-mate
+
+nav:
+  - Home: index.md
+  - Tutorials:
+      - Getting started: tutorials/getting-started.md
+  - How-to guides:
+      - Generate a state machine: how-to/generate-state-machine.md
+      - Use State Mate from Python: how-to/use-from-python.md
+      - Diagnose unsupported statecharts: how-to/diagnose-unsupported-statecharts.md
+  - Reference:
+      - Command-line interface: reference/cli.md
+      - Python API: reference/python-api.md
+      - Supported Sismic subset: reference/supported-subset.md
+  - Explanation:
+      - Architecture: explanation/architecture.md
+      - Why Sismic is the canonical model: explanation/sismic-model.md
+      - Why the supported subset is intentionally small: explanation/supported-subset.md
+
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - python
+    - yaml
+    - bash
+  navigation_depth: 3
+  collapse_navigation: false
+  titles_only: false
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - fenced_code
+  - tables
+  - toc:
+      permalink: true
+
+strict: true
