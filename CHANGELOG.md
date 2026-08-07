@@ -19,11 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-## [0.1.0] - 2026-08-07
+## [0.1.0] - 2026-XX-XX
 
 ### Added
 
 - Initial release.
 
-[unreleased]: https://github.com/Terradue/state-mate/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/Terradue/transpiler-mate-api/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/Terradue/state-mate/releases/tag/v0.1.0
