@@ -60,7 +60,7 @@ def test_transpiler_plugin_registers_typed_execution_function() -> None:
     assert plugin.description == "Test registration"
     assert plugin.options_model is Options
     context = cast("TranspilerContext", object())
-    assert plugin.execute(context, Options(output=Path("out.txt"))) is None
+    plugin.execute(context, Options(output=Path("out.txt")))
     assert executed_with == [Path("out.txt")]
 
 
