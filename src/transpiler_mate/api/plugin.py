@@ -20,11 +20,46 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Generic, Protocol, TypeVar, runtime_checkable
 
-from pydantic import BaseModel, ConfigDict
+from cwl_utils.parser import Process
+from pydantic import AnyUrl, BaseModel, ConfigDict
 
-from transpiler_mate.api.context import TranspilerContext
+from transpiler_mate.api.software_application_models import SoftwareApplication
 
 OptionsT = TypeVar("OptionsT", bound=BaseModel)
+
+
+class PluginError(Exception):
+    """Base class for errors intentionally exposed by a transpiler plugin."""
+
+
+class PluginExecutionError(PluginError):
+    """Unexpected technical error that prevents a plugin from completing."""
+
+
+class PluginFailureError(PluginError):
+    """Expected domain failure reported by an otherwise working plugin."""
+
+
+class TranspilerContext(BaseModel):
+    """Resolved CWL input and normalized metadata prepared by a runtime."""
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        extra="forbid",
+        frozen=True,
+    )
+
+    source: Path | AnyUrl
+    metadata: SoftwareApplication
+    document: Process | tuple[Process, ...]
+
+    @property
+    def processes(self) -> tuple[Process, ...]:
+        """Return an immutable iterable view while preserving `document`."""
+
+        if isinstance(self.document, tuple):
+            return self.document
+        return (self.document,)
 
 
 class EmptyOptions(BaseModel):
@@ -45,7 +80,7 @@ class PluginRegistration(BaseModel, Generic[OptionsT]):
     name: str
     description: str
     options_model: type[OptionsT]
-    execute: Callable[[TranspilerContext, OptionsT], tuple[Path]]
+    execute: Callable[[TranspilerContext, OptionsT], None]
 
 
 def transpiler_plugin(
@@ -54,13 +89,13 @@ def transpiler_plugin(
     description: str,
     options_model: type[OptionsT],
 ) -> Callable[
-    [Callable[[TranspilerContext, OptionsT], tuple[Path]]],
+    [Callable[[TranspilerContext, OptionsT], None]],
     PluginRegistration[OptionsT],
 ]:
     """Register a stateless plugin from its typed execution function."""
 
     def register(
-        execute: Callable[[TranspilerContext, OptionsT], tuple[Path]],
+        execute: Callable[[TranspilerContext, OptionsT], None],
     ) -> PluginRegistration[OptionsT]:
         return PluginRegistration(
             name=name,
@@ -89,6 +124,6 @@ class TranspilerPlugin(Protocol[OptionsT]):
         self,
         context: TranspilerContext,
         options: OptionsT,
-    ) -> tuple[Path]:
+    ) -> None:
         """Execute without assumptions about CLI, HTTP, workers, or notebooks."""
         ...

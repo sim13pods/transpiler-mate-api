@@ -19,7 +19,11 @@ import pytest
 from cwl_utils.parser.cwl_v1_2 import Workflow
 from pydantic import AnyUrl, BaseModel, ValidationError
 
+import transpiler_mate.api as api
 from transpiler_mate.api import (
+    PluginError,
+    PluginExecutionError,
+    PluginFailureError,
     PluginRegistration,
     TranspilerContext,
     TranspilerPlugin,
@@ -33,6 +37,8 @@ class Options(BaseModel):
 
 
 def test_transpiler_plugin_registers_typed_execution_function() -> None:
+    executed_with: list[Path] = []
+
     @transpiler_plugin(
         name="test",
         description="Test registration",
@@ -41,8 +47,8 @@ def test_transpiler_plugin_registers_typed_execution_function() -> None:
     def plugin(
         context: TranspilerContext,
         options: Options,
-    ) -> tuple[Path]:
-        return (options.output,)
+    ) -> None:
+        executed_with.append(options.output)
 
     conforms: TranspilerPlugin[Options] = plugin
 
@@ -51,17 +57,16 @@ def test_transpiler_plugin_registers_typed_execution_function() -> None:
     assert plugin.description == "Test registration"
     assert plugin.options_model is Options
     context = cast("TranspilerContext", object())
-    assert plugin.execute(context, Options(output=Path("out.txt"))) == (
-        Path("out.txt"),
-    )
+    assert plugin.execute(context, Options(output=Path("out.txt"))) is None
+    assert executed_with == [Path("out.txt")]
 
 
 def test_plugin_registration_is_an_immutable_pydantic_model() -> None:
     def execute(
         context: TranspilerContext,
         options: Options,
-    ) -> tuple[Path]:
-        return (options.output,)
+    ) -> None:
+        pass
 
     registration = PluginRegistration(
         name="test", description="Test", options_model=Options, execute=execute
@@ -76,6 +81,37 @@ def test_plugin_registration_is_an_immutable_pydantic_model() -> None:
     with pytest.raises(ValidationError, match="Instance is frozen"):
         registration.name = "changed"
     assert isinstance(registration, BaseModel)
+
+
+def test_plugin_exceptions_share_a_common_base() -> None:
+    assert issubclass(PluginExecutionError, PluginError)
+    assert issubclass(PluginFailureError, PluginError)
+
+
+def test_software_application_models_are_exported_from_api() -> None:
+    expected_models = {
+        "AuthorRole",
+        "ContributorRole",
+        "CreativeWork",
+        "DefinedTerm",
+        "ImageObject",
+        "Model",
+        "Organization",
+        "Person",
+        "Role",
+        "SoftwareApplication",
+        "SoftwareSourceCode",
+    }
+
+    assert expected_models <= set(api.__all__)
+    for model_name in expected_models:
+        assert getattr(api, model_name).__module__ == (
+            "transpiler_mate.api.software_application_models"
+        )
+
+
+def test_transpiler_context_is_defined_in_plugin_module() -> None:
+    assert TranspilerContext.__module__ == "transpiler_mate.api.plugin"
 
 
 def test_transpiler_context_is_an_immutable_pydantic_model() -> None:

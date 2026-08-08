@@ -14,17 +14,47 @@
 
 """Stable contracts for independently packaged transpiler-mate plugins."""
 
-from transpiler_mate.api.context import TranspilerContext
 from transpiler_mate.api.plugin import (
     EmptyOptions,
+    PluginError,
+    PluginExecutionError,
+    PluginFailureError,
     PluginRegistration,
+    TranspilerContext,
     TranspilerPlugin,
     transpiler_plugin,
 )
+from transpiler_mate.api.software_application_models import (
+    AuthorRole,
+    ContributorRole,
+    CreativeWork,
+    DefinedTerm,
+    ImageObject,
+    Model,
+    Organization,
+    Person,
+    Role,
+    SoftwareApplication,
+    SoftwareSourceCode,
+)
 
 __all__ = [
+    "AuthorRole",
+    "ContributorRole",
+    "CreativeWork",
+    "DefinedTerm",
     "EmptyOptions",
+    "ImageObject",
+    "Model",
+    "Organization",
+    "Person",
+    "PluginError",
+    "PluginExecutionError",
+    "PluginFailureError",
     "PluginRegistration",
+    "Role",
+    "SoftwareApplication",
+    "SoftwareSourceCode",
     "TranspilerContext",
     "TranspilerPlugin",
     "transpiler_plugin",
