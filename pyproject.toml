@@ -75,7 +75,7 @@ addopts = [
 ]
 
 [[tool.hatch.envs.test.matrix]]
-python = ["3.11", "3.12", "3.13", "3.14"]
+python = ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
 [tool.hatch.envs.dev]
 skip-install = false
