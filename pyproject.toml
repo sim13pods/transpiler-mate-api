@@ -30,9 +30,9 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://terradue.github.io/state-mate/"
-Issues = "https://github.com/Terradue/state-mate/issues"
-Source = "https://github.com/Terradue/state-mate"
+Documentation = "https://terradue.github.io/transpiler-mate-api/"
+Issues = "https://github.com/Terradue/transpiler-mate-api/issues"
+Source = "https://github.com/Terradue/transpiler-mate-api"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/transpiler_mate"]
@@ -44,8 +44,8 @@ path = "src/transpiler_mate/api/__about__.py"
 include = ["src/transpiler_mate", "tests", "examples", "docs", "README.md", "mkdocs.yml", "pyproject.toml"]
 
 [tool.coverage.paths]
-transpiler_mate = ["src/transpiler_mate", "*/state-mate/src/transpiler_mate"]
-tests = ["tests", "*/state-mate/tests"]
+transpiler_mate = ["src/transpiler_mate", "*/transpiler-mate-api/src/transpiler_mate"]
+tests = ["tests", "*/transpiler-mate-api/tests"]
 
 [tool.coverage.report]
 exclude_lines = [
