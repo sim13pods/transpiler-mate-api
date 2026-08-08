@@ -1,0 +1,139 @@
+# Copyright 2026 Terradue
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: package
+
+on:
+  push:
+    branches:
+    - feature
+    - feature/**
+    - develop
+    - main
+    tags:
+    - v*.*.*
+  pull_request:
+    branches:
+    - feature
+    - feature/**
+    - develop
+    - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/') || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+        - '3.10'
+        - '3.11'
+        - '3.12'
+        - '3.13'
+        - '3.14'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: "pip"
+
+    - name: Install tooling
+      run: pip install hatch
+
+    # -----------------------------
+    # Strict SemVer + Hatch version gate
+    # -----------------------------
+    - name: Validate tag and hatch version
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        TAG="${GITHUB_REF#refs/tags/}"
+
+        # Ensure tag starts with v
+        if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "ERROR: Tag must follow strict SemVer format vX.Y.Z"
+          exit 1
+        fi
+
+        TAG_VERSION="${TAG#v}"
+        HATCH_VERSION=$(hatch version)
+
+        echo "Tag version:   $TAG_VERSION"
+        echo "Hatch version: $HATCH_VERSION"
+
+        if [ "$TAG_VERSION" != "$HATCH_VERSION" ]; then
+          echo "ERROR: Git tag version does not match hatch version"
+          exit 1
+        fi
+
+    - name: mypy (strict type checking)
+      run: hatch run dev:typecheck
+
+    - name: ruff (format)
+      run: hatch run dev:lint
+
+    - name: ruff (check and McCabe complexity)
+      run: hatch run dev:check
+
+    - name: bandit (find common security issues)
+      run: hatch run dev:security
+
+    - name: pytest (test coverage)
+      run: hatch run test:test-cov
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: release
+    needs: build
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: pip
+
+    - name: Install Hatch
+      run: pip install hatch
+
+    - name: Verify tag matches project version
+      run: |
+        TAG_VERSION="${GITHUB_REF_NAME#v}"
+        PROJECT_VERSION="$(hatch version)"
+
+        echo "Tag version: ${TAG_VERSION}"
+        echo "Project version: ${PROJECT_VERSION}"
+
+        if [ "${TAG_VERSION}" != "${PROJECT_VERSION}" ]; then
+          echo "Tag ${GITHUB_REF_NAME} does not match project version ${PROJECT_VERSION}"
+          exit 1
+        fi
+
+    - name: Build package
+      run: hatch build
+
+    - name: Publish package distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
