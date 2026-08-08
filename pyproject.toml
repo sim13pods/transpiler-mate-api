@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "transpiler-mate-api"
 dynamic = ["version"]
 description = "Stable, execution-environment-neutral contracts for transpiler-mate plugins"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 license = "Apache-2.0"
 authors = [
   { name = "Simone Tripodi", email = "simone.tripodi@terradue.com" },
