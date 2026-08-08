@@ -35,6 +35,7 @@ from transpiler_mate.api.software_application_models import (
     Person,
     Role,
     SoftwareApplication,
+    SoftwareApplicationModel,
     SoftwareSourceCode,
 )
 
@@ -54,6 +55,7 @@ __all__ = [
     "PluginRegistration",
     "Role",
     "SoftwareApplication",
+    "SoftwareApplicationModel",
     "SoftwareSourceCode",
     "TranspilerContext",
     "TranspilerPlugin",
