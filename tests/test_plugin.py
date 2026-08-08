@@ -20,7 +20,9 @@ from cwl_utils.parser.cwl_v1_2 import Workflow
 from pydantic import AnyUrl, BaseModel, ValidationError
 
 import transpiler_mate.api as api
+import transpiler_mate.api.software_application_models as software_application_models
 from transpiler_mate.api import (
+    EmptyOptions,
     PluginError,
     PluginExecutionError,
     PluginFailureError,
@@ -53,6 +55,7 @@ def test_transpiler_plugin_registers_typed_execution_function() -> None:
     conforms: TranspilerPlugin[Options] = plugin
 
     assert isinstance(plugin, PluginRegistration)
+    assert isinstance(plugin, TranspilerPlugin)
     assert conforms.name == "test"
     assert plugin.description == "Test registration"
     assert plugin.options_model is Options
@@ -83,31 +86,50 @@ def test_plugin_registration_is_an_immutable_pydantic_model() -> None:
     assert isinstance(registration, BaseModel)
 
 
+def test_plugin_registration_forbids_unknown_fields() -> None:
+    def execute(
+        context: TranspilerContext,
+        options: Options,
+    ) -> None:
+        pass
+
+    with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+        PluginRegistration.model_validate(
+            {
+                "name": "test",
+                "description": "Test",
+                "options_model": Options,
+                "execute": execute,
+                "unexpected": True,
+            }
+        )
+
+
+def test_empty_options_forbids_configuration() -> None:
+    assert EmptyOptions().model_dump() == {}
+
+    with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+        EmptyOptions.model_validate({"unexpected": True})
+
+
 def test_plugin_exceptions_share_a_common_base() -> None:
     assert issubclass(PluginExecutionError, PluginError)
     assert issubclass(PluginFailureError, PluginError)
 
 
 def test_software_application_models_are_exported_from_api() -> None:
-    expected_models = {
-        "AuthorRole",
-        "ContributorRole",
-        "CreativeWork",
-        "DefinedTerm",
-        "ImageObject",
-        "Model",
-        "Organization",
-        "Person",
-        "Role",
-        "SoftwareApplication",
-        "SoftwareSourceCode",
+    models = {
+        name: model
+        for name, model in vars(software_application_models).items()
+        if isinstance(model, type)
+        and issubclass(model, BaseModel)
+        and model.__module__ == software_application_models.__name__
     }
 
-    assert expected_models <= set(api.__all__)
-    for model_name in expected_models:
-        assert getattr(api, model_name).__module__ == (
-            "transpiler_mate.api.software_application_models"
-        )
+    assert models
+    for model_name, model in models.items():
+        assert model_name in api.__all__
+        assert getattr(api, model_name) is model
 
 
 def test_transpiler_context_is_defined_in_plugin_module() -> None:
@@ -116,16 +138,53 @@ def test_transpiler_context_is_defined_in_plugin_module() -> None:
 
 def test_transpiler_context_is_an_immutable_pydantic_model() -> None:
     process = cast("object", object())
+    processes = (process,)
     context = TranspilerContext.model_construct(
         source=Path("workflow.cwl"),
-        document=(process,),
+        document=processes,
         metadata=object(),
     )
 
-    assert context.processes == (process,)
+    assert context.processes is processes
     with pytest.raises(ValidationError, match="Instance is frozen"):
         context.source = Path("changed.cwl")
     assert isinstance(context, BaseModel)
+
+
+def test_transpiler_context_wraps_a_single_process() -> None:
+    process = Workflow(inputs=[], outputs=[], steps=[])
+    context = TranspilerContext(
+        source=Path("workflow.cwl"),
+        document=process,
+        metadata=SoftwareApplication.model_construct(),
+    )
+
+    assert context.document is process
+    assert context.processes == (process,)
+
+
+def test_transpiler_context_accepts_local_path_sources() -> None:
+    source = Path("workflow.cwl")
+
+    context = TranspilerContext(
+        source=source,
+        document=Workflow(inputs=[], outputs=[], steps=[]),
+        metadata=SoftwareApplication.model_construct(),
+    )
+
+    assert context.source == source
+
+
+def test_transpiler_context_forbids_unknown_fields() -> None:
+    with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+        TranspilerContext.model_validate(
+            {
+                "source": Path("workflow.cwl"),
+                "document": Workflow(inputs=[], outputs=[], steps=[]),
+                "metadata": SoftwareApplication.model_construct(),
+                "unexpected": True,
+            }
+        )
 
 
 @pytest.mark.parametrize(
