@@ -137,7 +137,7 @@ def test_transpiler_context_is_defined_in_plugin_module() -> None:
 
 
 def test_transpiler_context_is_an_immutable_pydantic_model() -> None:
-    process = cast("object", object())
+    process = object()
     processes = (process,)
     context = TranspilerContext.model_construct(
         source=Path("workflow.cwl"),

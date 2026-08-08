@@ -87,6 +87,12 @@ dependencies = [
   "bandit>=1.9.4",
 ]
 
+[tool.mypy]
+strict = true
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
+
 [tool.ruff.lint]
 # Start with the essential rules
 select = [
