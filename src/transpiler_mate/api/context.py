@@ -34,8 +34,8 @@ class TranspilerContext(BaseModel):
     )
 
     source: Path | AnyUrl
-    document: Process | tuple[Process, ...]
     metadata: SoftwareApplication
+    document: Process | tuple[Process, ...]
 
     @property
     def processes(self) -> tuple[Process, ...]:
