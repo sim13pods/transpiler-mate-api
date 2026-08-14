@@ -28,6 +28,7 @@ from transpiler_mate.api import (
     PluginFailureError,
     PluginRegistration,
     TranspilerContext,
+    TranspilerContextResolver,
     TranspilerPlugin,
     transpiler_plugin,
 )
@@ -36,6 +37,14 @@ from transpiler_mate.api.software_application_models import SoftwareApplication
 
 class Options(BaseModel):
     output: Path
+
+
+class Resolver:
+    def resolve(self, location: str) -> TranspilerContext:
+        raise NotImplementedError
+
+
+RESOLVER: TranspilerContextResolver = Resolver()
 
 
 def test_transpiler_plugin_registers_typed_execution_function() -> None:
@@ -143,6 +152,7 @@ def test_transpiler_context_is_an_immutable_pydantic_model() -> None:
         source=Path("workflow.cwl"),
         document=processes,
         metadata=object(),
+        resolver=RESOLVER,
     )
 
     assert context.processes is processes
@@ -157,10 +167,12 @@ def test_transpiler_context_wraps_a_single_process() -> None:
         source=Path("workflow.cwl"),
         document=process,
         metadata=SoftwareApplication.model_construct(),
+        resolver=RESOLVER,
     )
 
     assert context.document is process
     assert context.processes == (process,)
+    assert context.resolver is RESOLVER
 
 
 def test_transpiler_context_accepts_local_path_sources() -> None:
@@ -170,6 +182,7 @@ def test_transpiler_context_accepts_local_path_sources() -> None:
         source=source,
         document=Workflow(inputs=[], outputs=[], steps=[]),
         metadata=SoftwareApplication.model_construct(),
+        resolver=RESOLVER,
     )
 
     assert context.source == source
@@ -182,6 +195,7 @@ def test_transpiler_context_forbids_unknown_fields() -> None:
                 "source": Path("workflow.cwl"),
                 "document": Workflow(inputs=[], outputs=[], steps=[]),
                 "metadata": SoftwareApplication.model_construct(),
+                "resolver": RESOLVER,
                 "unexpected": True,
             }
         )
@@ -204,6 +218,7 @@ def test_transpiler_context_accepts_url_sources(source: str) -> None:
         source=url,
         document=Workflow(inputs=[], outputs=[], steps=[]),
         metadata=SoftwareApplication.model_construct(),
+        resolver=RESOLVER,
     )
 
     assert context.source == url

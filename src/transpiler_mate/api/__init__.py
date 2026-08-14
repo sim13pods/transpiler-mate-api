@@ -21,6 +21,7 @@ from transpiler_mate.api.plugin import (
     PluginFailureError,
     PluginRegistration,
     TranspilerContext,
+    TranspilerContextResolver,
     TranspilerPlugin,
     transpiler_plugin,
 )
@@ -58,6 +59,7 @@ __all__ = [
     "SoftwareApplicationModel",
     "SoftwareSourceCode",
     "TranspilerContext",
+    "TranspilerContextResolver",
     "TranspilerPlugin",
     "transpiler_plugin",
 ]

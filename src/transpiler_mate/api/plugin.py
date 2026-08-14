@@ -40,6 +40,13 @@ class PluginFailureError(PluginError):
     """Expected domain failure reported by an otherwise working plugin."""
 
 
+@runtime_checkable
+class TranspilerContextResolver(Protocol):
+    """Resolves a source into an execution context."""
+
+    def resolve(self, location: str) -> TranspilerContext: ...
+
+
 class TranspilerContext(BaseModel):
     """Resolved CWL input and normalized metadata prepared by a runtime."""
 
@@ -52,6 +59,8 @@ class TranspilerContext(BaseModel):
     source: Path | AnyUrl
     metadata: SoftwareApplication
     document: Process | tuple[Process, ...]
+
+    resolver: TranspilerContextResolver
 
     @property
     def processes(self) -> tuple[Process, ...]:
