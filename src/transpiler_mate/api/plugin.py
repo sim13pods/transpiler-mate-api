@@ -59,7 +59,7 @@ class TranspilerContext(BaseModel):
     source: Path | AnyUrl
     metadata: SoftwareApplication
     document: Process | tuple[Process, ...]
-    resolved_process: Process
+    resolved_process: Process | None = None
 
     resolver: TranspilerContextResolver
 
