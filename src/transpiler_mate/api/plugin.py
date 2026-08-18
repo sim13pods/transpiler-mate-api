@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from pathlib import Path
 from typing import Generic, Protocol, TypeVar, runtime_checkable
 
 from cwl_utils.parser import Process
@@ -56,7 +55,7 @@ class TranspilerContext(BaseModel):
         frozen=True,
     )
 
-    source: Path | AnyUrl
+    source: AnyUrl
     metadata: SoftwareApplication
     document: Process | tuple[Process, ...]
     resolved_process: Process | None = None

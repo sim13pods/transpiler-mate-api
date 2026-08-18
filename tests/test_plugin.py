@@ -157,14 +157,14 @@ def test_transpiler_context_is_an_immutable_pydantic_model() -> None:
 
     assert context.processes is processes
     with pytest.raises(ValidationError, match="Instance is frozen"):
-        context.source = Path("changed.cwl")
+        context.source = AnyUrl(Path("changed.cwl").absolute().as_uri())
     assert isinstance(context, BaseModel)
 
 
 def test_transpiler_context_wraps_a_single_process() -> None:
     process = Workflow(inputs=[], outputs=[], steps=[])
     context = TranspilerContext(
-        source=Path("workflow.cwl"),
+        source=AnyUrl(Path("workflow.cwl").absolute().as_uri()),
         document=process,
         metadata=SoftwareApplication.model_construct(),
         resolver=RESOLVER,
@@ -176,7 +176,7 @@ def test_transpiler_context_wraps_a_single_process() -> None:
 
 
 def test_transpiler_context_accepts_local_path_sources() -> None:
-    source = Path("workflow.cwl")
+    source = AnyUrl(Path("workflow.cwl").absolute().as_uri())
 
     context = TranspilerContext(
         source=source,
