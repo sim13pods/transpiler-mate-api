@@ -1,33 +1,35 @@
-site_name: State Mate
-site_description: Generate python-statemachine classes from constrained Sismic YAML statecharts.
-site_author: Fabrice Brito, Simone Tripodi
-site_url: https://terradue.github.io/state-mate/
-repo_url: https://github.com/Terradue/state-mate
-repo_name: Terradue/state-mate
+site_name: Transpiler Mate API
+site_description: Stable contracts for independently packaged Transpiler Mate plugins.
+site_author: Terradue
+site_url: https://terradue.github.io/transpiler-mate-api/
+repo_url: https://github.com/Terradue/transpiler-mate-api
+repo_name: Terradue/transpiler-mate-api
 
 nav:
   - Home: index.md
   - Tutorials:
-      - Getting started: tutorials/getting-started.md
+      - Build your first plugin: tutorials/build-your-first-plugin.md
   - How-to guides:
-      - Generate a state machine: how-to/generate-state-machine.md
-      - Use State Mate from Python: how-to/use-from-python.md
-      - Diagnose unsupported statecharts: how-to/diagnose-unsupported-statecharts.md
+      - Develop and package a plugin: how-to/develop-a-plugin.md
+      - Define and validate options: how-to/define-options.md
+      - Resolve another CWL source: how-to/resolve-another-source.md
+      - Report failures correctly: how-to/report-failures.md
+      - Test a plugin: how-to/test-a-plugin.md
   - Reference:
-      - Command-line interface: reference/cli.md
-      - Python API: reference/python-api.md
-      - Supported Sismic subset: reference/supported-subset.md
+      - Plugin API: reference/plugin-api.md
+      - Context API: reference/context-api.md
+      - Exception contract: reference/exceptions.md
+      - Software metadata models: reference/software-metadata.md
   - Explanation:
-      - Architecture: explanation/architecture.md
-      - Why Sismic is the canonical model: explanation/sismic-model.md
-      - Why the supported subset is intentionally small: explanation/supported-subset.md
+      - Architecture and boundaries: explanation/architecture.md
+      - Failure semantics: explanation/failure-semantics.md
 
 theme:
   name: readthedocs
   highlightjs: true
   hljs_languages:
     - python
-    - yaml
+    - toml
     - bash
   navigation_depth: 3
   collapse_navigation: false
