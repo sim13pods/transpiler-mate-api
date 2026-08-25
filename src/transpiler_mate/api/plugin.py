@@ -16,11 +16,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Generic, Protocol, TypeVar, runtime_checkable
+from collections.abc import Callable, Iterable, Mapping
+from typing import Annotated, Generic, Protocol, TypeVar, runtime_checkable
 
 from cwl_utils.parser import Process
-from pydantic import AnyUrl, BaseModel, ConfigDict
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
 from transpiler_mate.api.software_application_models import SoftwareApplication
 
@@ -55,20 +55,43 @@ class TranspilerContext(BaseModel):
         frozen=True,
     )
 
-    source: AnyUrl
-    metadata: SoftwareApplication
-    document: Process | tuple[Process, ...]
-    resolved_process: Process | None = None
+    source: Annotated[AnyUrl, Field(description="The input CWL document URL")]
+    process_id: Annotated[
+        str | None, Field(default=None, description="The Process fragment identifier")
+    ] = None
+    metadata: Annotated[
+        SoftwareApplication, Field(description="The input CWL document metadata")
+    ]
+    document: Annotated[
+        Mapping[str, Process],
+        Field(description="The input CWL document declared Processes"),
+    ]
 
-    resolver: TranspilerContextResolver
+    resolver: Annotated[
+        TranspilerContextResolver,
+        Field(description="The resolver instance to parse other CWL documents"),
+    ]
 
     @property
-    def processes(self) -> tuple[Process, ...]:
+    def processes(self) -> Iterable[Process]:
         """Return an immutable iterable view while preserving `document`."""
+        return self.document.values()
 
-        if isinstance(self.document, tuple):
-            return self.document
-        return (self.document,)
+    @property
+    def resolved_process(self) -> Process:
+        if not self.process_id:
+            raise PluginExecutionError(
+                f"No #<process-id> specified in input CWL document {self.source}"
+            )
+
+        resolved_process: Process | None = self.document.get(self.process_id, None)
+
+        if not resolved_process:
+            raise PluginExecutionError(
+                f"Process {self.process_id} does not exist in input CWL document {self.source}, only {self.document.keys()} available."
+            )
+
+        return resolved_process
 
 
 class EmptyOptions(BaseModel):
@@ -86,10 +109,15 @@ class PluginRegistration(BaseModel, Generic[OptionsT]):
         frozen=True,
     )
 
-    name: str
-    description: str
-    options_model: type[OptionsT]
-    execute: Callable[[TranspilerContext, OptionsT], None]
+    name: Annotated[str, Field(description="The plugin name")]
+    description: Annotated[str, Field(description="The plugin description")]
+    options_model: Annotated[
+        type[OptionsT], Field(description="The plugin model type for input options")
+    ]
+    execute: Annotated[
+        Callable[[TranspilerContext, OptionsT], None],
+        Field(description="The plugin execution method"),
+    ]
 
 
 def transpiler_plugin(

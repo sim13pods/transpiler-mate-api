@@ -147,7 +147,7 @@ def test_transpiler_context_is_defined_in_plugin_module() -> None:
 
 def test_transpiler_context_is_an_immutable_pydantic_model() -> None:
     process = object()
-    processes = (process,)
+    processes = {"asd": process}
     context = TranspilerContext.model_construct(
         source=Path("workflow.cwl"),
         document=processes,
@@ -155,14 +155,14 @@ def test_transpiler_context_is_an_immutable_pydantic_model() -> None:
         resolver=RESOLVER,
     )
 
-    assert context.processes is processes
+    assert context.document == processes
     with pytest.raises(ValidationError, match="Instance is frozen"):
         context.source = AnyUrl(Path("changed.cwl").absolute().as_uri())
     assert isinstance(context, BaseModel)
 
 
 def test_transpiler_context_wraps_a_single_process() -> None:
-    process = Workflow(inputs=[], outputs=[], steps=[])
+    process = {"asd": Workflow(id="asd", inputs=[], outputs=[], steps=[])}
     context = TranspilerContext(
         source=AnyUrl(Path("workflow.cwl").absolute().as_uri()),
         document=process,
@@ -170,8 +170,12 @@ def test_transpiler_context_wraps_a_single_process() -> None:
         resolver=RESOLVER,
     )
 
-    assert context.document is process
-    assert context.processes == (process,)
+    assert context.document == process
+
+    for inner_process in context.processes:
+        assert inner_process.id in process
+        assert inner_process == process[inner_process.id]
+
     assert context.resolver is RESOLVER
 
 
@@ -180,7 +184,7 @@ def test_transpiler_context_accepts_local_path_sources() -> None:
 
     context = TranspilerContext(
         source=source,
-        document=Workflow(inputs=[], outputs=[], steps=[]),
+        document={"asd": Workflow(inputs=[], outputs=[], steps=[])},
         metadata=SoftwareApplication.model_construct(),
         resolver=RESOLVER,
     )
@@ -216,7 +220,7 @@ def test_transpiler_context_accepts_url_sources(source: str) -> None:
 
     context = TranspilerContext(
         source=url,
-        document=Workflow(inputs=[], outputs=[], steps=[]),
+        document={"asd": Workflow(inputs=[], outputs=[], steps=[])},
         metadata=SoftwareApplication.model_construct(),
         resolver=RESOLVER,
     )
