@@ -26,7 +26,11 @@ The `TranspilerPlugin` protocol also permits other implementations. Structural t
 
 ## Why the context is immutable
 
-The runtime prepares a normalized snapshot containing source identity, parsed CWL, selected process, metadata, and a resolver. Freezing that model prevents a plugin from accidentally rewriting shared invocation state. Plugin output belongs in plugin-owned side effects, not mutations to the context.
+The runtime prepares a normalized snapshot containing source identity, an
+optional selected-process ID, a mapping of parsed CWL processes, metadata, and a
+resolver. Freezing the context model prevents a plugin from reassigning shared
+invocation fields. Plugin output belongs in plugin-owned side effects, not
+mutations to the context.
 
 ## Why discovery is absent
 

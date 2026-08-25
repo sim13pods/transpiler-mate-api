@@ -33,15 +33,20 @@ class ResolverStub:
 
 
 def make_context(tmp_path: Path) -> TranspilerContext:
+    process = Workflow(id="main", inputs=[], outputs=[], steps=[])
     return TranspilerContext(
         source=AnyUrl((tmp_path / "workflow.cwl").as_uri()),
         metadata=SoftwareApplication.model_construct(),
-        document=Workflow(inputs=[], outputs=[], steps=[]),
+        document={"main": process},
         resolver=ResolverStub(),
     )
 ```
 
 Use `model_construct()` only when bypassing unrelated validation is intentional. Construct complete validated metadata when the behavior under test reads it.
+
+Set `process_id="main"` in the context when testing code that reads
+`context.resolved_process`. Leave it unset when testing plugins that operate on
+the complete mapping through `document` or `processes`.
 
 ## Test both failure categories
 

@@ -59,8 +59,12 @@ The execution signature is exact in intent:
 def execute(context: TranspilerContext, options: OptionsT) -> None: ...
 ```
 
-- Read the already resolved CWL object from `context.document` or `context.processes`.
-- Use `context.resolved_process` only when the runtime selected a particular process; it may be `None` when the whole document is the target.
+- Read the parsed CWL processes from the ID-to-process mapping in
+  `context.document`, or iterate over `context.processes` when the IDs are not
+  needed.
+- Use `context.resolved_process` when the plugin requires the process selected
+  by `context.process_id`. Access raises `PluginExecutionError` if the source
+  did not select a process or if the selected ID is absent from `document`.
 - Read normalized software metadata from `context.metadata`.
 - Use `context.resolver` when you deliberately need another source.
 - Produce results through side effects. The contract does not define a returned artifact list.
@@ -101,8 +105,9 @@ At minimum, test:
 
 - registration metadata and `options_model`;
 - valid and invalid options;
-- a single-process and, if supported, multi-process document;
-- `resolved_process is None` and selected-process behavior if relevant;
+- single-entry and multi-entry process mappings;
+- successful `resolved_process` selection and the missing/unknown
+  `process_id` errors, if the plugin uses that property;
 - every supported domain rejection as `PluginFailureError`;
 - technical dependency failures as `PluginExecutionError`;
 - the exception message and preserved cause;

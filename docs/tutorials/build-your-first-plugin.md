@@ -99,7 +99,9 @@ def plugin(context: TranspilerContext, options: InventoryOptions) -> None:
 
 The decorator replaces the function name with an immutable `PluginRegistration`. The original function is available as `plugin.execute`. Execution returns `None`; files and other results are side effects owned by the plugin.
 
-`context.processes` always produces a tuple-like view, whether the runtime supplied one `Process` in `context.document` or a tuple of them.
+`context.document` maps process IDs to parsed CWL `Process` objects. The
+`context.processes` iterable exposes its values when a plugin does not need the
+IDs.
 
 ## 4. Export the plugin object
 
@@ -140,7 +142,7 @@ def test_writes_an_inventory(tmp_path: Path) -> None:
     context = TranspilerContext(
         source=AnyUrl((tmp_path / "workflow.cwl").as_uri()),
         metadata=SoftwareApplication.model_construct(),
-        document=process,
+        document={"main": process},
         resolver=UnusedResolver(),
     )
 

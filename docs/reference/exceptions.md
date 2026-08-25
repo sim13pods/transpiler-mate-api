@@ -23,6 +23,7 @@ The classes carry no structured fields beyond normal `Exception` arguments. Thei
 | User-supplied template/configuration is well-formed but incompatible | `PluginFailureError` | Expected domain incompatibility. |
 | Options fail Pydantic type/field/range validation before execution | Allow `pydantic.ValidationError` | Options could not be constructed; execution did not begin. |
 | Programmer calls `execute` with the wrong Python object type | Do not translate automatically | This violates the typed calling contract. |
+| `context.resolved_process` is read without a `process_id`, or the ID is absent from `document` | `PluginExecutionError` is raised by the property | The runtime-prepared selection is missing or inconsistent. |
 | Output cannot be written because of an I/O or permission error | `PluginExecutionError` from the original error | Technical machinery prevented completion. |
 | Required executable cannot start or exits unexpectedly | `PluginExecutionError` | Technical dependency failed. |
 | Remote service is unavailable, times out, or returns a malformed response | `PluginExecutionError` | Infrastructure/dependency failure. |
