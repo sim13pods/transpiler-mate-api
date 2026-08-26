@@ -28,6 +28,7 @@ OptionsT = TypeVar("OptionsT", bound=BaseModel)
 
 ProcessT = TypeVar("ProcessT", bound=Process)
 
+
 class PluginError(Exception):
     """Base class for errors intentionally exposed by a transpiler plugin."""
 
@@ -82,7 +83,7 @@ class TranspilerContext(BaseModel):
         self,
         process_type: type[ProcessT],
         process_ids: Iterable[str] | None = None,
-        fail_if_empty: bool = True
+        fail_if_empty: bool = True,
     ) -> Iterable[Process]:
         """Return an immutable iterable view of `ProcessT` type Process only, while preserving `document`."""
 
@@ -102,7 +103,7 @@ class TranspilerContext(BaseModel):
             )
 
         return computed_list
-            
+
     @property
     def resolved_process(self) -> Process:
         if not self.process_id:
@@ -118,6 +119,7 @@ class TranspilerContext(BaseModel):
             )
 
         return resolved_process
+
 
 class EmptyOptions(BaseModel):
     """Configuration model for a plugin with no parameters."""
