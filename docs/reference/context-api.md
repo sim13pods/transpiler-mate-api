@@ -32,16 +32,18 @@ Returns `document.values()`, so iteration follows the mapping's order. Use
 ```python
 def get_processes_by_type(
     self,
-    process_type: type[ProcessT],
+    process_type: type[Process] | UnionType,
     process_ids: Iterable[str] | None = None,
     fail_if_empty: bool = True,
 ) -> Iterable[Process]: ...
 ```
 
-Returns processes that are instances of `process_type`. When `process_ids` is
-omitted, it examines every entry in `document` in mapping order. When IDs are
-provided, it examines them in the iterable's order; unknown IDs and entries of
-a different type are skipped.
+Returns processes that are instances of `process_type`. The argument may be a
+concrete process class or a runtime union of classes, including the public
+`cwl_utils.parser.Workflow`, `CommandLineTool`, and `ExpressionTool` aliases.
+When `process_ids` is omitted, the method examines every entry in `document` in
+mapping order. When IDs are provided, it examines them in the iterable's order;
+unknown IDs and entries of a different type are skipped.
 
 By default, the method raises `PluginExecutionError` when no process matches.
 Pass `fail_if_empty=False` to receive an empty iterable instead.
@@ -49,7 +51,7 @@ Pass `fail_if_empty=False` to receive an empty iterable instead.
 For example, a plugin that supports only CWL workflows can select them with:
 
 ```python
-from cwl_utils.parser.cwl_v1_2 import Workflow
+from cwl_utils.parser import Workflow
 
 workflows = context.get_processes_by_type(Workflow)
 ```

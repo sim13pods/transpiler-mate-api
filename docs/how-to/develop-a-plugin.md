@@ -63,8 +63,10 @@ def execute(context: TranspilerContext, options: OptionsT) -> None: ...
   `context.document`, or iterate over `context.processes` when the IDs are not
   needed.
 - Use `context.get_processes_by_type(ProcessType)` when the plugin accepts only
-  a particular CWL process type. Supply `process_ids` to restrict the lookup,
-  or set `fail_if_empty=False` when no match is a valid outcome.
+  a particular CWL process type. Top-level union aliases such as
+  `cwl_utils.parser.Workflow` select that type across supported CWL versions.
+  Supply `process_ids` to restrict the lookup, or set `fail_if_empty=False`
+  when no match is a valid outcome.
 - Use `context.resolved_process` when the plugin requires the process selected
   by `context.process_id`. Access raises `PluginExecutionError` if the source
   did not select a process or if the selected ID is absent from `document`.
