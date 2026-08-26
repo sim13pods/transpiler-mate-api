@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from cwl_utils.parser import Workflow as WorkflowType
+from cwl_utils.parser.cwl_v1_0 import Workflow as WorkflowV1_0
 from cwl_utils.parser.cwl_v1_2 import CommandLineTool, Workflow
 from pydantic import AnyUrl, BaseModel, ValidationError
 
@@ -195,6 +197,26 @@ def test_transpiler_context_gets_processes_by_type() -> None:
     )
 
     processes = context.get_processes_by_type(Workflow)
+
+    assert list(processes) == [first_workflow, second_workflow]
+
+
+def test_transpiler_context_gets_processes_by_union_type() -> None:
+    first_workflow = WorkflowV1_0(id="first", inputs=[], outputs=[], steps=[])
+    command_line_tool = CommandLineTool(id="tool", inputs=[], outputs=[])
+    second_workflow = Workflow(id="second", inputs=[], outputs=[], steps=[])
+    context = TranspilerContext(
+        source=AnyUrl(Path("workflow.cwl").absolute().as_uri()),
+        document={
+            "first": first_workflow,
+            "tool": command_line_tool,
+            "second": second_workflow,
+        },
+        metadata=SoftwareApplication.model_construct(),
+        resolver=RESOLVER,
+    )
+
+    processes = context.get_processes_by_type(WorkflowType)
 
     assert list(processes) == [first_workflow, second_workflow]
 

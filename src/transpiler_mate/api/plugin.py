@@ -17,16 +17,24 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Mapping
-from typing import Annotated, Generic, Protocol, TypeVar, runtime_checkable
+from typing import (
+    TYPE_CHECKING,
+    Annotated,
+    Generic,
+    Protocol,
+    TypeVar,
+    runtime_checkable,
+)
 
 from cwl_utils.parser import Process
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
 from transpiler_mate.api.software_application_models import SoftwareApplication
 
-OptionsT = TypeVar("OptionsT", bound=BaseModel)
+if TYPE_CHECKING:
+    from types import UnionType
 
-ProcessT = TypeVar("ProcessT", bound=Process)
+OptionsT = TypeVar("OptionsT", bound=BaseModel)
 
 
 class PluginError(Exception):
@@ -81,20 +89,20 @@ class TranspilerContext(BaseModel):
 
     def get_processes_by_type(
         self,
-        process_type: type[ProcessT],
+        process_type: type[Process] | UnionType,
         process_ids: Iterable[str] | None = None,
         fail_if_empty: bool = True,
     ) -> Iterable[Process]:
-        """Return an immutable iterable view of `ProcessT` type Process only, while preserving `document`."""
+        """Return processes matching a process class or runtime union of classes."""
 
-        computed_list: list[ProcessT] = []
+        computed_list: list[Process] = []
 
         computed_process_ids: Iterable[str] = process_ids or self.document.keys()
 
         for process_id in computed_process_ids:
             resolved_process: Process | None = self.document.get(process_id, None)
 
-            if isinstance(resolved_process, process_type):
+            if resolved_process and isinstance(resolved_process, process_type):
                 computed_list.append(resolved_process)
 
         if not computed_list and fail_if_empty:
