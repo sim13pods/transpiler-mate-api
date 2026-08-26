@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from cwl_utils.parser.cwl_v1_2 import Workflow
+from cwl_utils.parser.cwl_v1_2 import CommandLineTool, Workflow
 from pydantic import AnyUrl, BaseModel, ValidationError
 
 import transpiler_mate.api as api
@@ -177,6 +177,73 @@ def test_transpiler_context_wraps_a_single_process() -> None:
         assert inner_process == process[inner_process.id]
 
     assert context.resolver is RESOLVER
+
+
+def test_transpiler_context_gets_processes_by_type() -> None:
+    first_workflow = Workflow(id="first", inputs=[], outputs=[], steps=[])
+    command_line_tool = CommandLineTool(id="tool", inputs=[], outputs=[])
+    second_workflow = Workflow(id="second", inputs=[], outputs=[], steps=[])
+    context = TranspilerContext(
+        source=AnyUrl(Path("workflow.cwl").absolute().as_uri()),
+        document={
+            "first": first_workflow,
+            "tool": command_line_tool,
+            "second": second_workflow,
+        },
+        metadata=SoftwareApplication.model_construct(),
+        resolver=RESOLVER,
+    )
+
+    processes = context.get_processes_by_type(Workflow)
+
+    assert list(processes) == [first_workflow, second_workflow]
+
+
+def test_transpiler_context_gets_processes_by_type_for_selected_ids() -> None:
+    first_workflow = Workflow(id="first", inputs=[], outputs=[], steps=[])
+    command_line_tool = CommandLineTool(id="tool", inputs=[], outputs=[])
+    second_workflow = Workflow(id="second", inputs=[], outputs=[], steps=[])
+    context = TranspilerContext(
+        source=AnyUrl(Path("workflow.cwl").absolute().as_uri()),
+        document={
+            "first": first_workflow,
+            "tool": command_line_tool,
+            "second": second_workflow,
+        },
+        metadata=SoftwareApplication.model_construct(),
+        resolver=RESOLVER,
+    )
+
+    processes = context.get_processes_by_type(
+        Workflow, (process_id for process_id in ["second", "missing", "tool"])
+    )
+
+    assert list(processes) == [second_workflow]
+
+
+def test_transpiler_context_get_processes_by_type_fails_if_empty() -> None:
+    context = TranspilerContext(
+        source=AnyUrl(Path("workflow.cwl").absolute().as_uri()),
+        document={"tool": CommandLineTool(id="tool", inputs=[], outputs=[])},
+        metadata=SoftwareApplication.model_construct(),
+        resolver=RESOLVER,
+    )
+
+    with pytest.raises(PluginExecutionError, match=r"No .*Workflow.* found"):
+        context.get_processes_by_type(Workflow)
+
+
+def test_transpiler_context_get_processes_by_type_allows_empty_result() -> None:
+    context = TranspilerContext(
+        source=AnyUrl(Path("workflow.cwl").absolute().as_uri()),
+        document={"tool": CommandLineTool(id="tool", inputs=[], outputs=[])},
+        metadata=SoftwareApplication.model_construct(),
+        resolver=RESOLVER,
+    )
+
+    processes = context.get_processes_by_type(Workflow, fail_if_empty=False)
+
+    assert list(processes) == []
 
 
 def test_transpiler_context_accepts_local_path_sources() -> None:

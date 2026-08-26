@@ -26,6 +26,7 @@ from transpiler_mate.api.software_application_models import SoftwareApplication
 
 OptionsT = TypeVar("OptionsT", bound=BaseModel)
 
+ProcessT = TypeVar("ProcessT", bound=Process)
 
 class PluginError(Exception):
     """Base class for errors intentionally exposed by a transpiler plugin."""
@@ -77,6 +78,31 @@ class TranspilerContext(BaseModel):
         """Return an immutable iterable view while preserving `document`."""
         return self.document.values()
 
+    def get_processes_by_type(
+        self,
+        process_type: type[ProcessT],
+        process_ids: Iterable[str] | None = None,
+        fail_if_empty: bool = True
+    ) -> Iterable[Process]:
+        """Return an immutable iterable view of `ProcessT` type Process only, while preserving `document`."""
+
+        computed_list: list[ProcessT] = []
+
+        computed_process_ids: Iterable[str] = process_ids or self.document.keys()
+
+        for process_id in computed_process_ids:
+            resolved_process: Process | None = self.document.get(process_id, None)
+
+            if isinstance(resolved_process, process_type):
+                computed_list.append(resolved_process)
+
+        if not computed_list and fail_if_empty:
+            raise PluginExecutionError(
+                f"No {process_type}(s) found in input {self.source} CWL document"
+            )
+
+        return computed_list
+            
     @property
     def resolved_process(self) -> Process:
         if not self.process_id:
@@ -92,7 +118,6 @@ class TranspilerContext(BaseModel):
             )
 
         return resolved_process
-
 
 class EmptyOptions(BaseModel):
     """Configuration model for a plugin with no parameters."""
