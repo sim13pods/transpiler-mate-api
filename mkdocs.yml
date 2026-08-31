@@ -1,9 +1,9 @@
 site_name: Transpiler Mate API
 site_description: Stable contracts for independently packaged Transpiler Mate plugins.
 site_author: Terradue
-site_url: https://terradue.github.io/transpiler-mate-api/
-repo_url: https://github.com/Terradue/transpiler-mate-api
-repo_name: Terradue/transpiler-mate-api
+site_url: https://transpiler-mate.github.io/transpiler-mate-api/
+repo_url: https://github.com/transpiler-mate/transpiler-mate-api
+repo_name: transpiler-mate/transpiler-mate-api
 
 nav:
   - Home: index.md
